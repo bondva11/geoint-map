@@ -4,44 +4,58 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEOINT Мониторинг</title>
+    <!-- ПРАВИЛЬНЫЕ ССЫЛКИ НА КАРТУ LEAFLET -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
+    <!-- ПРАВИЛЬНАЯ ССЫЛКА НА TELEGRAM WEBAPP API -->
     <script src="https://telegram.org"></script>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #1c1c1e; color: #fff; font-family: sans-serif; }
         #map { height: 100%; width: 100%; }
-        #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; font-size: 18px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; }
+        #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; font-size: 18px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; text-align: center; }
     </style>
 </head>
 <body>
     <div id="loading">Загрузка маршрута цели...</div>
     <div id="map"></div>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+
         const urlParams = new URLSearchParams(window.location.search);
         const encodedPoints = urlParams.get('points');
+
         if (!encodedPoints) {
             document.getElementById('loading').innerText = "Данные маршрута отсутствуют";
         } else {
-            document.getElementById('loading').style.display = 'none';
-            const points = JSON.parse(decodeURIComponent(encodedPoints));
-            if (points.length === 0) {
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('loading').innerText = "У пользователя нет точек за сегодня";
-            } else {
-                const lastPoint = points[points.length - 1];
-                const map = L.map('map').setView([lastPoint[0], lastPoint[1]], 14);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
-                }).addTo(map);
-                const latLngs = points.map(p => [p[0], p[1]]);
-                const polyline = L.polyline(latLngs, {color: '#007aff', weight: 5, opacity: 0.8}).addTo(map);
-                map.fitBounds(polyline.getBounds());
-                L.marker([lastPoint[0], lastPoint[1]])
-                    .addTo(map)
-                    .bindPopup(`<b>Текущая позиция цели</b><br>${lastPoint[2].join(', ')}`)
-                    .openPopup();
+            try {
+                const points = JSON.parse(decodeURIComponent(encodedPoints));
+                
+                if (!points || points.length === 0) {
+                    document.getElementById('loading').innerText = "У пользователя нет точек за сегодня";
+                } else {
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    const lastPoint = points[points.length - 1];
+                    const map = L.map('map').setView([lastPoint[0], lastPoint[1]], 15);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap'
+                    }).addTo(map);
+
+                    const latLngs = points.map(p => [p[0], p[1]]);
+
+                    const polyline = L.polyline(latLngs, {color: '#007aff', weight: 5, opacity: 0.8}).addTo(map);
+                    map.fitBounds(polyline.getBounds());
+
+                    L.marker([lastPoint[0], lastPoint[1]])
+                        .addTo(map)
+                        .bindPopup(`<b>Текущая позиция цели</b><br>Время: ${lastPoint[2] || 'Не указано'}`)
+                        .openPopup();
+                }
+            } catch (e) {
+                document.getElementById('loading').innerText = "Ошибка парсинга координат: " + e;
             }
         }
     </script>
