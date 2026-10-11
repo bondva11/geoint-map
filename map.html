@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEOINT Мониторинг</title>
+    <!-- Подключаем оригинальные и полные скрипты карт Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
     <script src="https://telegram.org"></script>
@@ -28,44 +29,43 @@
             document.getElementById('loading').innerText = "Данные маршрута отсутствуют";
         } else {
             try {
-                // Декодируем массив точек
+                // Декодируем массив точек, присланных из Python [[lat, lon], [lat, lon], ...]
                 const points = JSON.parse(decodeURIComponent(encodedPoints));
                 
                 if (!points || points.length === 0) {
                     document.getElementById('loading').innerText = "У пользователя нет точек за сегодня";
                 } else {
+                    // Убираем черный экран загрузки
                     document.getElementById('loading').style.display = 'none';
                     
-                    // Собираем чистый массив координат [[lat, lon], [lat, lon], ...]
+                    // Преобразуем координаты в числа на случай, если они пришли строками
                     const latLngs = points.map(p => [parseFloat(p[0]), parseFloat(p[1])]);
                     
-                    // Центрируем карту по последней точке маршрута
+                    // Берем самую последнюю точку для центра карты
                     const lastCoord = latLngs[latLngs.length - 1];
                     const map = L.map('map').setView(lastCoord, 15);
 
-                    // Подключаем карту OpenStreetMap
+                    // Отрисовываем карту OpenStreetMap
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '© OpenStreetMap'
                     }).addTo(map);
 
-                    // Рисуем синюю линию маршрута
+                    // Прокладываем синюю линию маршрута
                     const polyline = L.polyline(latLngs, {color: '#007aff', weight: 5, opacity: 0.8}).addTo(map);
                     
-                    // Автоматически масштабируем карту под весь трек цели
                     if (latLngs.length > 1) {
                         map.fitBounds(polyline.getBounds());
                     }
 
                     // Ставим маркер на последнюю позицию
-                    const lastPointData = points[points.length - 1];
                     L.marker(lastCoord)
                         .addTo(map)
-                        .bindPopup(`<b>Текущая позиция цели</b><br>Время: ${lastPointData[2] || 'Не указано'}`)
+                        .bindPopup(`<b>Текущая позиция цели</b>`)
                         .openPopup();
                 }
             } catch (e) {
                 document.getElementById('loading').style.display = 'block';
-                document.getElementById('loading').innerText = "Ошибка парсинга координат: " + e;
+                document.getElementById('loading').innerText = "Ошибка отображения: " + e;
             }
         }
     </script>
