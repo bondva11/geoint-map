@@ -4,9 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEOINT Мониторинг</title>
-    <!-- Полные и корректные ссылки на библиотеки карт Leaflet -->
+    <!-- Полные и рабочие ссылки на библиотеки карт Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
+    <!-- Оригинальный скрипт Telegram WebApp -->
     <script src="https://telegram.org"></script>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #1c1c1e; color: #fff; font-family: sans-serif; }
@@ -15,44 +16,44 @@
     </style>
 </head>
 <body>
-    <div id="loading">Загрузка маршрута цели...</div>
+    <div id="loading">Загрузка карты мониторинга...</div>
     <div id="map"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        tg.expand(); // Разворачиваем окно на весь экран телефона
 
         const urlParams = new URLSearchParams(window.location.search);
         const rawPoints = urlParams.get('points');
 
         if (!rawPoints) {
-            document.getElementById('loading').innerText = "Данные отсутствуют";
+            document.getElementById('loading').innerText = "Данные о местоположении отсутствуют";
         } else {
             try {
-                // Просто разделяем строку "lat,lon" по запятой
+                // Разделяем входящую строку "широта,долгота" по запятой
                 const coords = rawPoints.split(',');
                 const lat = parseFloat(coords[0]);
                 const lon = parseFloat(coords[1]);
 
                 if (isNaN(lat) || isNaN(lon)) {
-                    document.getElementById('loading').innerText = "Неверный формат координат";
+                    document.getElementById('loading').innerText = "Неверный формат полученных координат";
                 } else {
-                    // Код сработал, прячем плашку загрузки!
+                    // Координаты успешно прочитаны, скрываем плашку загрузки
                     document.getElementById('loading').style.display = 'none';
 
-                    // Инициализируем карту OpenStreetMap
-                    const map = L.map('map').setView([lat, lon], 15);
+                    // Инициализируем и центрируем карту OpenStreetMap
+                    const map = L.map('map').setView([lat, lon], 16);
 
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '© OpenStreetMap'
                     }).addTo(map);
 
-                    // Ставим маркер на позицию цели
+                    // Устанавливаем маркер на текущую позицию цели
                     L.marker([lat, lon]).addTo(map).bindPopup("<b>Объект зафиксирован</b>").openPopup();
                 }
             } catch (e) {
                 document.getElementById('loading').style.display = 'block';
-                document.getElementById('loading').innerText = "Ошибка отображения: " + e;
+                document.getElementById('loading').innerText = "Ошибка отрисовки карты: " + e;
             }
         }
     </script>
