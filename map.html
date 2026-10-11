@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEOINT Мониторинг</title>
+    <!-- Полные ссылки на библиотеки карт OpenStreetMap -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
     <script src="https://telegram.org"></script>
@@ -28,30 +29,29 @@
             document.getElementById('loading').innerText = "Данные отсутствуют";
         } else {
             try {
-                // Декодируем входящую строку
-                const rawData = decodeURIComponent(encodedPoints);
-                const points = JSON.parse(rawData);
+                // Разбираем данные, пришедшие из Python
+                const points = JSON.parse(decodeURIComponent(encodedPoints));
                 
                 if (!points || points.length === 0) {
                     document.getElementById('loading').innerText = "Точек не найдено";
                 } else {
-                    // Прячем загрузку, код сработал!
+                    // Прячем загрузку, данные получены!
                     document.getElementById('loading').style.display = 'none';
                     
-                    // Берем самую первую пару координат из массива для теста
-                    const firstRow = points[0];
-                    const lat = parseFloat(firstRow[0]);
-                    const lon = parseFloat(firstRow[1]);
+                    // Забираем самую последнюю запись
+                    const lastRow = points[points.length - 1];
+                    const lat = parseFloat(lastRow[0]);
+                    const lon = parseFloat(lastRow[1]);
                     
-                    // Создаем карту
+                    // Создаем карту OpenStreetMap
                     const map = L.map('map').setView([lat, lon], 15);
 
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '© OpenStreetMap'
                     }).addTo(map);
 
-                    // Ставим маркер в точку
-                    L.marker([lat, lon]).addTo(map).bindPopup("<b>Цель зафиксирована</b>").openPopup();
+                    // Ставим маркер на позицию цели
+                    L.marker([lat, lon]).addTo(map).bindPopup("<b>Объект зафиксирован</b>").openPopup();
                 }
             } catch (e) {
                 document.getElementById('loading').style.display = 'block';
