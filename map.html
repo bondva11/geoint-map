@@ -6,12 +6,11 @@
 </head>
 <body>
     <script>
-        // Читаем координаты "широта,долгота" из ссылки бота
         const urlParams = new URLSearchParams(window.location.search);
         const rawPoints = urlParams.get('points');
 
         if (rawPoints) {
-            // Мгновенно перенаправляем браузер на официальные карты Google с точным маркером цели
+            // Исправленная строка: жестко собираем ссылку на карты Google
             window.location.href = "https://google.com" + rawPoints;
         } else {
             document.body.innerText = "Ошибка: Координаты цели не переданы.";
